@@ -1,0 +1,15 @@
+{
+	"name": "newdatafactorypree",
+	"properties": {
+		"trustModeClaimForMi": {
+			"value": "Disabled",
+			"editable": true
+		}
+	},
+	"location": "centralindia",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "aada221b-dd61-4692-a16a-b75b03d63b65",
+		"tenantId": "f83a67d9-7b7c-4768-921d-37fc1bfb5666"
+	}
+}
