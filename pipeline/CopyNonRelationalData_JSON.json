@@ -1,5 +1,5 @@
 {
-	"name": "CopyNonRelationalData",
+	"name": "CopyNonRelationalData_JSON",
 	"properties": {
 		"activities": [
 			{
@@ -25,12 +25,14 @@
 						}
 					},
 					"sink": {
-						"type": "JsonSink",
+						"type": "DelimitedTextSink",
 						"storeSettings": {
 							"type": "AzureBlobFSWriteSettings"
 						},
 						"formatSettings": {
-							"type": "JsonWriteSettings"
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
 						}
 					},
 					"enableStaging": false,
@@ -152,7 +154,7 @@
 				],
 				"outputs": [
 					{
-						"referenceName": "DS_Sink_JSON",
+						"referenceName": "DS_Sink_CSV_Users",
 						"type": "DatasetReference"
 					}
 				]
