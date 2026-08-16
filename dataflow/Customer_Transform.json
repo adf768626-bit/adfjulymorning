@@ -30,6 +30,13 @@
 				},
 				{
 					"name": "sort1"
+				},
+				{
+					"name": "flowlet1",
+					"flowlet": {
+						"referenceName": "AddDateTime",
+						"type": "DataFlowReference"
+					}
 				}
 			],
 			"scriptLines": [
@@ -73,7 +80,11 @@
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select1",
 				"select1 sort(asc(CustomerID, true)) ~> sort1",
-				"sort1 sink(allowSchemaDrift: true,",
+				"sort1 compose(mapColumn(",
+				"          {Modified Date} = ModifiedDate",
+				"     ),",
+				"     composition: 'AddDateTime') ~> flowlet1@(output1)",
+				"flowlet1@output1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     partitionFileNames:['customer_transformed.csv'],",
 				"     umask: 0022,",
