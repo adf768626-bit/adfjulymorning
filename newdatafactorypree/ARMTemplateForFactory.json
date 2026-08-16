@@ -1723,6 +1723,14 @@
 						},
 						{
 							"name": "sort1"
+						},
+						{
+							"name": "flowlet1",
+							"flowlet": {
+								"referenceName": "AddDateTime",
+								"type": "DataFlowReference",
+								"parameters": {}
+							}
 						}
 					],
 					"scriptLines": [
@@ -1766,7 +1774,11 @@
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true) ~> select1",
 						"select1 sort(asc(CustomerID, true)) ~> sort1",
-						"sort1 sink(allowSchemaDrift: true,",
+						"sort1 compose(mapColumn(",
+						"          {Modified Date} = ModifiedDate",
+						"     ),",
+						"     composition: 'AddDateTime') ~> flowlet1@(output1)",
+						"flowlet1@output1 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     partitionFileNames:['customer_transformed.csv'],",
 						"     umask: 0022,",
@@ -1779,9 +1791,43 @@
 				}
 			},
 			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/AddDateTime')]",
 				"[concat(variables('factoryId'), '/datasets/DS_Source_Customer')]",
 				"[concat(variables('factoryId'), '/datasets/DS_Sink_Customer_CSV1')]"
 			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AddDateTime')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "Flowlet",
+				"typeProperties": {
+					"sources": [],
+					"sinks": [],
+					"transformations": [
+						{
+							"name": "derivedColumn1"
+						},
+						{
+							"name": "input1"
+						},
+						{
+							"name": "output1"
+						}
+					],
+					"scriptLines": [
+						"input(output(",
+						"          {Modified Date} as timestamp",
+						"     ),",
+						"     order: 0,",
+						"     allowSchemaDrift: true) ~> input1",
+						"input1 derive(AddDateTime = currentUTC()) ~> derivedColumn1",
+						"derivedColumn1 output() ~> output1"
+					]
+				}
+			},
+			"dependsOn": []
 		}
 	]
 }
