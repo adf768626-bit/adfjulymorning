@@ -195,7 +195,7 @@
 						"     ),",
 						"     order: 0,",
 						"     allowSchemaDrift: true) ~> input1",
-						"input1 derive(AddDateTime = currentUTC()) ~> derivedColumn1",
+						"input1 derive({Modified Date} = currentUTC()) ~> derivedColumn1",
 						"derivedColumn1 output() ~> output1"
 					]
 				}

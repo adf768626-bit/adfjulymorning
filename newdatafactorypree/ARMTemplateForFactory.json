@@ -1690,6 +1690,39 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/AddDateTime')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "Flowlet",
+				"typeProperties": {
+					"sources": [],
+					"sinks": [],
+					"transformations": [
+						{
+							"name": "derivedColumn1"
+						},
+						{
+							"name": "input1"
+						},
+						{
+							"name": "output1"
+						}
+					],
+					"scriptLines": [
+						"input(output(",
+						"          {Modified Date} as timestamp",
+						"     ),",
+						"     order: 0,",
+						"     allowSchemaDrift: true) ~> input1",
+						"input1 derive({Modified Date} = currentUTC()) ~> derivedColumn1",
+						"derivedColumn1 output() ~> output1"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/Customer_Transform')]",
 			"type": "Microsoft.DataFactory/factories/dataflows",
 			"apiVersion": "2018-06-01",
@@ -1716,6 +1749,14 @@
 					],
 					"transformations": [
 						{
+							"name": "flowlet1",
+							"flowlet": {
+								"referenceName": "AddDateTime",
+								"type": "DataFlowReference",
+								"parameters": {}
+							}
+						},
+						{
 							"name": "derivedColumn1"
 						},
 						{
@@ -1723,14 +1764,6 @@
 						},
 						{
 							"name": "sort1"
-						},
-						{
-							"name": "flowlet1",
-							"flowlet": {
-								"referenceName": "AddDateTime",
-								"type": "DataFlowReference",
-								"parameters": {}
-							}
 						}
 					],
 					"scriptLines": [
@@ -1755,6 +1788,10 @@
 						"     validateSchema: false,",
 						"     isolationLevel: 'READ_UNCOMMITTED',",
 						"     format: 'table') ~> source1",
+						"sort1 compose(mapColumn(",
+						"          {Modified Date} = ModifiedDate",
+						"     ),",
+						"     composition: 'AddDateTime') ~> flowlet1@(output1)",
 						"source1 derive(FullName = concat(iif(isNull(Title),\" \",Title),\r",
 						"\" \",iif(isNull(FirstName),\" \",FirstName),\r",
 						"\" \",iif(isNull(MiddleName),\" \",MiddleName),\r",
@@ -1774,10 +1811,6 @@
 						"     skipDuplicateMapInputs: true,",
 						"     skipDuplicateMapOutputs: true) ~> select1",
 						"select1 sort(asc(CustomerID, true)) ~> sort1",
-						"sort1 compose(mapColumn(",
-						"          {Modified Date} = ModifiedDate",
-						"     ),",
-						"     composition: 'AddDateTime') ~> flowlet1@(output1)",
 						"flowlet1@output1 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     partitionFileNames:['customer_transformed.csv'],",
@@ -1797,37 +1830,138 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/AddDateTime')]",
+			"name": "[concat(parameters('factoryName'), '/dataflow1')]",
 			"type": "Microsoft.DataFactory/factories/dataflows",
 			"apiVersion": "2018-06-01",
 			"properties": {
-				"type": "Flowlet",
+				"type": "MappingDataFlow",
 				"typeProperties": {
-					"sources": [],
-					"sinks": [],
+					"sources": [
+						{
+							"linkedService": {
+								"referenceName": "AzureDataLakeStorageLS",
+								"type": "LinkedServiceReference"
+							},
+							"name": "employees"
+						},
+						{
+							"linkedService": {
+								"referenceName": "AzureDataLakeStorageLS",
+								"type": "LinkedServiceReference"
+							},
+							"name": "deparments"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "AzureDataLakeStorageLS",
+								"type": "LinkedServiceReference"
+							},
+							"name": "sink1"
+						}
+					],
 					"transformations": [
 						{
+							"name": "flowlet1",
+							"flowlet": {
+								"referenceName": "AddDateTime",
+								"type": "DataFlowReference",
+								"parameters": {}
+							}
+						},
+						{
+							"name": "select1"
+						},
+						{
+							"name": "join1"
+						},
+						{
 							"name": "derivedColumn1"
-						},
-						{
-							"name": "input1"
-						},
-						{
-							"name": "output1"
 						}
 					],
 					"scriptLines": [
-						"input(output(",
-						"          {Modified Date} as timestamp",
+						"source(output(",
+						"          EmployeeID as short,",
+						"          EmployeeName as string,",
+						"          Email as string,",
+						"          DepartmentID3 as short,",
+						"          JobTitle as string,",
+						"          Salary as integer,",
+						"          DepartmentID6 as short,",
+						"          DepartmentName as string,",
+						"          Location as string",
 						"     ),",
-						"     order: 0,",
-						"     allowSchemaDrift: true) ~> input1",
-						"input1 derive(AddDateTime = currentUTC()) ~> derivedColumn1",
-						"derivedColumn1 output() ~> output1"
+						"     useSchema: false,",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'delimited',",
+						"     fileSystem: 'rawdata',",
+						"     fileName: 'employees.csv',",
+						"     columnDelimiter: ',',",
+						"     escapeChar: '\\\\',",
+						"     quoteChar: '\\\"',",
+						"     columnNamesAsHeader: true) ~> employees",
+						"source(output(",
+						"          DepartmentID as short,",
+						"          DepartmentName as string,",
+						"          Location as string",
+						"     ),",
+						"     useSchema: false,",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'delimited',",
+						"     fileSystem: 'rawdata',",
+						"     fileName: 'departments.csv',",
+						"     columnDelimiter: ',',",
+						"     escapeChar: '\\\\',",
+						"     quoteChar: '\\\"',",
+						"     columnNamesAsHeader: true) ~> deparments",
+						"derivedColumn1 compose(mapColumn(",
+						"          {Modified Date}",
+						"     ),",
+						"     composition: 'AddDateTime') ~> flowlet1@(output1)",
+						"join1 select(mapColumn(",
+						"          EmployeeID,",
+						"          EmployeeName,",
+						"          Email,",
+						"          JobTitle,",
+						"          Salary,",
+						"          DepartmentName = employees@DepartmentName,",
+						"          Location = employees@Location,",
+						"          DepartmentID",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select1",
+						"employees, deparments join(DepartmentID3 == DepartmentID,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join1",
+						"select1 derive({Modified Date} = currentTimestamp()) ~> derivedColumn1",
+						"flowlet1@output1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'delimited',",
+						"     fileSystem: 'sink',",
+						"     folderPath: 'transformed_join.csv',",
+						"     columnDelimiter: ',',",
+						"     escapeChar: '\\\\',",
+						"     quoteChar: '\\\"',",
+						"     columnNamesAsHeader: true,",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> sink1"
 					]
 				}
 			},
-			"dependsOn": []
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/AddDateTime')]",
+				"[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStorageLS')]"
+			]
 		}
 	]
 }
