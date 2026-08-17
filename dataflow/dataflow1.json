@@ -13,18 +13,15 @@
 				}
 			],
 			"sinks": [],
-			"transformations": [
-				{
-					"name": "join1"
-				}
-			],
+			"transformations": [],
 			"scriptLines": [
 				"source(output(",
-				"          {1} as short,",
-				"          Rajesh as string,",
-				"          NULL as short,",
-				"          Management as string,",
-				"          {2018-01-15} as date",
+				"          EmployeeID as short,",
+				"          EmployeeName as string,",
+				"          ManagerID as string,",
+				"          Department as string,",
+				"          HireDate as date,",
+				"          deptID as short",
 				"     ),",
 				"     useSchema: false,",
 				"     allowSchemaDrift: true,",
@@ -36,12 +33,7 @@
 				"     columnDelimiter: ',',",
 				"     escapeChar: '\\\\',",
 				"     quoteChar: '\\\"',",
-				"     columnNamesAsHeader: true) ~> employee",
-				"employee join(ERROR_FUNCTION('') == ERROR_FUNCTION(''),",
-				"     joinType:'inner',",
-				"     matchType:'exact',",
-				"     ignoreSpaces: false,",
-				"     broadcast: 'auto')~> join1"
+				"     columnNamesAsHeader: true) ~> employee"
 			]
 		}
 	}

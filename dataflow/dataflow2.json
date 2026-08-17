@@ -16,9 +16,8 @@
 			"transformations": [],
 			"scriptLines": [
 				"source(output(",
-				"          D101 as string,",
-				"          IT as string,",
-				"          Jaipur as string",
+				"          Department as string,",
+				"          deptID as short",
 				"     ),",
 				"     useSchema: false,",
 				"     allowSchemaDrift: true,",
